@@ -18,7 +18,7 @@ import java.util.*;
 
 public class SupplierData {
 
-    Queue<String> suppliersNeed = new LinkedList();
+    public static Queue<String> suppliersNeeded = new LinkedList();
 
     public static void main(String[] args){
         File myDataBase_1 = new File("../../SupplierData/PO Receiving 20161001-20170930.xls");
@@ -29,35 +29,54 @@ public class SupplierData {
     }
 
     public static void processData(File file2Process){
-        try {
+        try{
             InputStream is = new FileInputStream(file2Process.getAbsolutePath());
             Workbook wb = Workbook.getWorkbook(is);
             int sheet_size = wb.getNumberOfSheets();
-            Sheet dataSheet = null;
-            for (int index = 0; index < sheet_size; index++) {
-                if(wb.getSheet(index).getName().equals("Data")){
+            Queue<Sheet> dataSheets = new LinkedList();
+            for (int index = 0; index < sheet_size; index++){
+                Sheet dataSheet;
+                if(wb.getSheet(index).getName().contains("Data")){
                     dataSheet = wb.getSheet(index);
+                    dataSheets.add(dataSheet);
                 }
             }
-            for(int i = 0; i < dataSheet.getRows(); i++){
-                String suppliers = dataSheet.getCell(6, i).getContents();
-                for(int j = 0; j < ignoreSuppliers.length; j++){
-                    if(ignoreSuppliers[j].equals(suppliers)){
-                        usefulData.add(dataSheet.getRow(i));
+            while(!dataSheets.isEmpty()){
+                Sheet currDataSheet = dataSheets.poll();
+                for(int i = 0; i < currDataSheet.getRows(); i++){
+                    String supplier = currDataSheet.getCell(6, i).getContents();
+                    if(!suppliersNeeded.contains(supplier)){
+                        suppliersNeeded.add(supplier);
                     }
                 }
-                //System.out.println(suppliers);
             }
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e){
             e.printStackTrace();
-        } catch (BiffException e) {
+        } catch (BiffException e){
             e.printStackTrace();
-        } catch (IOException e) {
+        } catch (IOException e){
             e.printStackTrace();
         }
     }
 
     public static void outputData(){
-
+        try{
+            WritableWorkbook myFile = Workbook.createWorkbook(new File("../../SupplierData/usefulSuppliersData.xls"));
+            WritableSheet sheet = myFile.createSheet("Suppliers", 0);
+            int rowCnt = 0;
+            //Label title = new Label(0, 0, "Suppliers Data");
+            //sheet.addCell(title);
+            while(!suppliersNeeded.isEmpty()){
+                String currSupplier = suppliersNeeded.poll();
+                Label currCell = new Label(0, rowCnt, currSupplier);
+                sheet.addCell(currCell);
+                rowCnt++;
+            }
+            myFile.write();
+            myFile.close();
+            System.out.println("Total number of suppliers: " + (rowCnt-1));
+        } catch (Exception e){
+            System.out.println(e);
+        }
     }
 }
