@@ -19,13 +19,16 @@ import java.util.*;
 public class SupplierData {
 
     public static Queue<String> suppliersNeeded = new LinkedList();
+    public static String[] suppliersNeededArr;
 
     public static void main(String[] args){
         File myDataBase_1 = new File("../../SupplierData/PO Receiving 20161001-20170930.xls");
         File myDataBase_2 = new File("../../SupplierData/PO Receiving 20170606-20180606.xls");
         processData(myDataBase_1);
         processData(myDataBase_2);
-        outputData();
+        suppliersNeededArr = (String[]) suppliersNeeded.toArray();
+        //outputData();
+        matchSuppliers();
     }
 
     public static void processData(File file2Process){
@@ -44,8 +47,8 @@ public class SupplierData {
             while(!dataSheets.isEmpty()){
                 Sheet currDataSheet = dataSheets.poll();
                 for(int i = 0; i < currDataSheet.getRows(); i++){
-                    String supplier = currDataSheet.getCell(6, i).getContents();
-                    if(!suppliersNeeded.contains(supplier)){
+                    String supplier = currDataSheet.getCell(6, i).getContents().toUpperCase();
+                    if(!suppliersNeeded.contains(supplier) && !supplier.contains("BUC")){
                         suppliersNeeded.add(supplier);
                     }
                 }
@@ -64,8 +67,6 @@ public class SupplierData {
             WritableWorkbook myFile = Workbook.createWorkbook(new File("../../SupplierData/usefulSuppliersData.xls"));
             WritableSheet sheet = myFile.createSheet("Suppliers", 0);
             int rowCnt = 0;
-            //Label title = new Label(0, 0, "Suppliers Data");
-            //sheet.addCell(title);
             while(!suppliersNeeded.isEmpty()){
                 String currSupplier = suppliersNeeded.poll();
                 Label currCell = new Label(0, rowCnt, currSupplier);
@@ -78,5 +79,9 @@ public class SupplierData {
         } catch (Exception e){
             System.out.println(e);
         }
+    }
+
+    public static void matchSuppliers(){
+
     }
 }
